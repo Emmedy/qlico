@@ -1,0 +1,61 @@
+---
+# Author: Qlico <hello@qlico.dev>
+services:
+  traefik:
+    image: traefik:v3.0.1
+    container_name: qlico-core_traefik
+    command: ['--providers.docker', '--api.insecure']
+    networks:
+      - qlico-core
+    ports:
+      - 80:80
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    labels:
+      - "traefik.http.routers.traefik.rule=Host(`traefik.qlico`)"
+      - "traefik.http.services.traefik.loadbalancer.server.port=8080"
+  mariadb:
+    image: mariadb:10.5.8
+    container_name: qlico_mariadb
+    logging:
+      driver: none
+    ports:
+      - 3308:3306
+    environment:
+      - MYSQL_USER=${MYSQL_USERNAME}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_PASSWORD}
+    volumes:
+      - mariadb-data:/var/lib/mysql
+    networks:
+      - qlico-core
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.12.1
+    container_name: qlico_elasticsearch
+    logging:
+      driver: none
+    ports:
+      - 9208:9200
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data
+    environment:
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - discovery.type=single-node
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    labels:
+      - "traefik.http.routers.elasticsearch.rule=Host(`elasticsearch.qlico`)"
+      - "traefik.http.services.elasticsearch.loadbalancer.server.port=9200"
+    networks:
+      - qlico-core
+networks:
+  qlico-core:
+    driver: bridge
+    name: qlico-core
+volumes:
+  mariadb-data:
+    name: qlico_mariadb-data
+  elasticsearch-data:
+    name: qlico-elasticsearch-data
+    driver: local

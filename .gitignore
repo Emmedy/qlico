@@ -9,20 +9,10 @@ Icon?
 ehthumbs.db
 Thumbs.db
 
-# Docker files #
-################
-/docker-compose.yml
-/docker-compose.yaml
-/docker-compose.override.yml
-
 # Editor created Files #
 ########################
 .idea
 *~
-
-# Settings #
-############
-.env
 
 # Doc files     #
 #################
