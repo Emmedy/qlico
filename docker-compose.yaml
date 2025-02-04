@@ -28,25 +28,28 @@ services:
       - mariadb-data:/var/lib/mysql
     networks:
       - qlico-core
-  elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.12.1
-    container_name: qlico_elasticsearch
+  opensearch:
+    image: opensearchproject/opensearch:2.18.0
+    container_name: qlico_opensearch
     logging:
       driver: none
     ports:
-      - 9208:9200
+      - 9209:9200
+      - 9609:9600
     volumes:
-      - elasticsearch-data:/usr/share/elasticsearch/data
+      - opensearch-data:/usr/share/opensearch/data
     environment:
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-      - discovery.type=single-node
+      - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m"
+      - "discovery.type=single-node"
+      - "OPENSEARCH_INITIAL_ADMIN_PASSWORD=${OPENSEARCH_PASSWORD}"
+      - "plugins.security.disabled=true"
     ulimits:
       memlock:
         soft: -1
         hard: -1
     labels:
-      - "traefik.http.routers.elasticsearch.rule=Host(`elasticsearch.qlico`)"
-      - "traefik.http.services.elasticsearch.loadbalancer.server.port=9200"
+      - "traefik.http.routers.opensearch.rule=Host(`opensearch.qlico`)"
+      - "traefik.http.services.opensearch.loadbalancer.server.port=9200"
     networks:
       - qlico-core
 networks:
@@ -56,6 +59,6 @@ networks:
 volumes:
   mariadb-data:
     name: qlico_mariadb-data
-  elasticsearch-data:
-    name: qlico-elasticsearch-data
+  opensearch-data:
+    name: qlico_opensearch-data
     driver: local
